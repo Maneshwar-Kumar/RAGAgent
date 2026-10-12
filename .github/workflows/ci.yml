@@ -1,0 +1,48 @@
+# Offline checks only: no secrets, no model calls, no manuals needed.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Byte-compile sources
+        shell: bash
+        run: |
+          dirs=()
+          for d in bike_manual_agent rider_ui scripts evals; do
+            if [ -d "$d" ]; then dirs+=("$d"); fi
+          done
+          echo "Compiling: ${dirs[*]}"
+          python -m compileall -q "${dirs[@]}"
+
+      # `python -m pytest` (not bare `pytest`) puts the repo root on sys.path so the tests
+      # can import bike_manual_agent without installing it.
+      - name: Run offline tests
+        run: python -m pytest -q

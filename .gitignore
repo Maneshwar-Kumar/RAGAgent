@@ -1,0 +1,23 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Secrets / local config
+.env
+*.env
+bike_manual_agent/.env
+
+# Third-party manuals are copyrighted: fetch them with scripts/fetch_manuals.py.
+# The derived index contains manual text, so it is not committed either.
+manuals/*.pdf
+manuals/uploads/
+index/
+
+# ADK local session databases (adk web/run without --in_memory)
+.adk/
+
+# Local scratch
+tmp/
+evals/results/*.raw.json

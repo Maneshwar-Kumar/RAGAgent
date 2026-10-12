@@ -1,0 +1,41 @@
+{
+  "_comment": "Official OEM download locations for the manuals this demo ships with. scripts/fetch_manuals.py downloads them and verifies the SHA-256 so the index is reproducible.",
+  "manuals": [
+    {
+      "manual_id": "royal-enfield-himalayan-450",
+      "name": "Royal Enfield Himalayan 450 (BS6) Owner's Manual",
+      "file": "royal-enfield-new-himalayan-450-owners-manual-bs-six-english.pdf",
+      "url": "https://www.royalenfield.com/content/dam/open-pdf/royal-enfield-new-himalayan-450-owners-manual-bs-six-english.pdf",
+      "sha256": "cf221a29e2f9cd5af6e80a99774a697c814e8eda661c27d72e519d8a7e80da89",
+      "edition": "RAM00818/A, 4 November 2025, 149 pages",
+      "brand": "Royal Enfield",
+      "model_label": "Himalayan 450 BS6",
+      "short_name": "Himalayan",
+      "edition_short": "Owner’s manual · 2025 edition",
+      "official_site": "https://www.royalenfield.com",
+      "select_label": "Royal Enfield Himalayan 450",
+      "pill_label": "Himalayan BS6",
+      "confirm_label": "My motorcycle is a Himalayan BS6",
+      "source_title": "Owner’s manual · English",
+      "edition_label": "RAM00818/A · 4 November 2025"
+    },
+    {
+      "manual_id": "tvs-ronin",
+      "name": "TVS Ronin Owner's Manual",
+      "file": "TVS-Ronin.pdf",
+      "url": "https://www.tvsmotor.com/-/media/Feature/Owners/UserManual2026/TVS-Ronin.pdf",
+      "sha256": "7dc1288d9b3af0b29b94ea96fb32de6be169320eaeb79b5d81e7a19e8d41acfc",
+      "edition": "2026 user manual, 134 pages",
+      "brand": "TVS Motor",
+      "model_label": "TVS Ronin",
+      "short_name": "Ronin",
+      "edition_short": "Owner’s manual · 2026 edition",
+      "official_site": "https://www.tvsmotor.com",
+      "select_label": "TVS Ronin",
+      "pill_label": "TVS Ronin",
+      "confirm_label": "My motorcycle is a TVS Ronin",
+      "source_title": "Owner’s manual · English",
+      "edition_label": "TVS Motor user manual · 2026"
+    }
+  ]
+}

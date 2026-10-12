@@ -1,0 +1,14 @@
+# Matches the MotoMedic rider UI server settings (no developer toolbar, no telemetry).
+[global]
+developmentMode = false
+
+[client]
+toolbarMode = "viewer"
+
+[browser]
+gatherUsageStats = false
+
+[server]
+headless = true
+enableXsrfProtection = true
+maxUploadSize = 40

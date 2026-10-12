@@ -1,0 +1,372 @@
+{
+  "version": 1,
+  "description": "Evaluation cases for the RAGAgent bike-manual troubleshooter. Every case was authored by reading the indexed manual text (index/<manual_id>/chunks.json), not from general motorcycle knowledge; each note cites the chunk_ids (and printed pages) used to verify it. expected_pages are printed page labels as the agent cites them ([p. N]); a label of the form 'PDF n' would mean a page without a printed number.",
+  "matching": {
+    "must_mention": "Each item is a string or a list of alternative strings. An item passes if any alternative occurs in the final answer (case-insensitive, whitespace collapsed, unicode dashes normalised to '-'). All items must pass.",
+    "must_not_mention": "Case-insensitive; a term must start at a word boundary (so 'lean' does not match 'clean'), spaces and hyphens are interchangeable ('head-gasket' == 'head gasket') and suffixes are allowed ('piston rings' matches 'piston ring'). Any hit is a violation.",
+    "expected_pages": "Answered cases only: the hit check passes if at least one page cited in the final answer is in expected_pages."
+  },
+  "cases": [
+    {
+      "id": "re-no-start",
+      "category": "troubleshooting",
+      "manual_id": "royal-enfield-himalayan-450",
+      "question": "My Himalayan won't start. What should I check?",
+      "expected_status": "answered",
+      "expected_pages": ["119"],
+      "must_mention": [["fuse"], ["spark plug"], ["battery"]],
+      "must_not_mention": [],
+      "note": "TROUBLESHOOTING table, chunk p121-0 (printed p.119): 'Engine does not start' -> ignition/engine kill switch OFF -> switch ON; inadequate fuel -> top up; lights dim/weak horn -> weak or discharged battery / problem in charging circuit, contact authorised service center; fuse blown -> replace with same rating; connection issue with spark plug, cap, high tension cable -> reconnect. The STARTING pages (p72-0..p75-1, printed 70-73) are related, but the checks themselves are on p.119."
+    },
+    {
+      "id": "re-stalls-in-gear",
+      "category": "troubleshooting",
+      "manual_id": "royal-enfield-himalayan-450",
+      "question": "My Himalayan starts fine, but the engine switches off as soon as I engage first gear. Why?",
+      "expected_status": "answered",
+      "expected_pages": ["120", "72"],
+      "must_mention": [["side stand"]],
+      "must_not_mention": [],
+      "note": "Chunk p122-0 (printed p.120): 'Engine starts but vehicle OFF's automatically when apply the first gear - Side stand indicator is glowing in the cluster - Side stand should be kept up right'. Chunk p74-0 (printed p.72): side stand cut-off feature turns the engine off when a gear is engaged with the side stand down."
+    },
+    {
+      "id": "re-misfire",
+      "category": "troubleshooting",
+      "manual_id": "royal-enfield-himalayan-450",
+      "question": "The engine on my Himalayan misfires, runs erratically and then stops. What could be wrong?",
+      "expected_status": "answered",
+      "expected_pages": ["120"],
+      "must_mention": [["adulterat", "water in fuel", "water in the fuel"], ["too hot", "cool"]],
+      "must_not_mention": [],
+      "note": "Chunk p122-0 (printed p.120): 'Engine misfires & runs erratically/stops' -> 'If any adulteration/water in fuel - Contact Authorised service center'; 'If the engine is too hot - Switch OFF the engine and allow it to cool down'."
+    },
+    {
+      "id": "re-poor-pickup",
+      "category": "troubleshooting",
+      "manual_id": "royal-enfield-himalayan-450",
+      "question": "My Himalayan has poor pickup: the revs climb but the road speed doesn't keep up. What should I do?",
+      "expected_status": "answered",
+      "expected_pages": ["120", "99"],
+      "must_mention": [["clutch"], ["free play"]],
+      "must_not_mention": [],
+      "note": "Chunk p122-0 (printed p.120): 'Poor pickup - If engine RPM raises disproportionately to the vehicle speed - Adjust the clutch free play and contact Authorised service center'. Clutch cable free play procedure (9-11 mm) is in chunk p101-0 (printed p.99)."
+    },
+    {
+      "id": "re-abs-lamp",
+      "category": "warning_lamp",
+      "manual_id": "royal-enfield-himalayan-450",
+      "question": "The ABS warning lamp on my Himalayan stays on even after I'm riding above 5 km/h. What should I do?",
+      "expected_status": "answered",
+      "expected_pages": ["64", "61", "60", "67", "120"],
+      "must_mention": [
+        ["service centre", "service center"],
+        ["not driv", "not to driv", "not ride", "not to ride", "not run", "not to run", "n't ride", "n't run", "n't driv", "avoid riding", "stop riding"]
+      ],
+      "must_not_mention": [],
+      "note": "Chunks p66-0/p66-1 (printed p.64): the ABS lamp stays on until 5 kmph; if it remains ON 'it is recommended not to drive the ABS motorcycle. Get the brake system inspected and corrected through a nearest Authorised Royal Enfield Service Centre'. Chunk p63-0 (printed p.61) CAUTION: 'Do not run motorcycle in case the ABS indicator lamp is ON continuously above 5 km/h'. Also p62-0 (p.60), p69-0 (p.67) and the troubleshooting row in p122-0 (p.120: 'If the ABS lamp continuously ON - Contact Authorised service center')."
+    },
+    {
+      "id": "re-tyre-pressure-pillion",
+      "category": "spec",
+      "manual_id": "royal-enfield-himalayan-450",
+      "question": "What tyre pressure should I run on my Himalayan when I carry a pillion?",
+      "expected_status": "answered",
+      "expected_pages": ["16", "88", "115"],
+      "must_mention": [["32 psi", "32psi"]],
+      "must_not_mention": [],
+      "note": "Chunk p18-0 (printed p.16, TECHNICAL SPECIFICATIONS): 'Solo & With pillion - Front & Rear - 32 psi'. Chunk p90-0 (printed p.88): 'Tyre pressure Front & Rear Solo & With Pillion 32 psi/2.24 kg/cm2'. Chunk p117-0 (printed p.115) suspension-setting table also lists 32 psi."
+    },
+    {
+      "id": "re-oil-grade-qty",
+      "category": "spec",
+      "manual_id": "royal-enfield-himalayan-450",
+      "question": "What engine oil grade does my Himalayan 450 need, and how much oil goes in at an oil change that includes the filter?",
+      "expected_status": "answered",
+      "expected_pages": ["19", "83"],
+      "must_mention": [["10W40", "10W-40", "10W 40"], ["2.1 l", "2.1l", "2.1 litre", "2.1 liter"]],
+      "must_not_mention": [],
+      "note": "Chunk p21-0 (printed p.19, RECOMMENDED LUBRICANTS): engine oil grade '10W40 API SN, JASO MA2, Semi Synthetic'; capacity '1st dry fill: 2.4 L', 'Refill: 2.1 L for oil service (Including filter change)'. Chunk p85-0 (printed p.83): 'Refill the specified fresh engine oil quantity 2.1 L.'"
+    },
+    {
+      "id": "re-chain-free-play",
+      "category": "maintenance",
+      "manual_id": "royal-enfield-himalayan-450",
+      "question": "How much free play should the drive chain on my Himalayan have, and how often should it be cleaned and lubricated?",
+      "expected_status": "answered",
+      "expected_pages": ["100", "101", "125"],
+      "must_mention": [["35 - 40", "35-40", "35 to 40", "35 and 40"], ["500 km"]],
+      "must_not_mention": [],
+      "note": "Chunks p102-0/p102-1 (printed p.100): 'DRIVE CHAIN TENSION (FREE PLAY 35 - 40 mm)' with the measuring steps; chunk p103-0 (printed p.101): 'drive chain free play is 35 to 40 mm'. Chunk p127-0 (printed p.125, PERIODICAL MAINTENANCE): 'Rear wheel drive chain ... Clean, Lubricate and Adjust every 500 km (or earlier as required), or after riding in wet/dusty/muddy conditions'."
+    },
+    {
+      "id": "re-starting-procedure",
+      "category": "procedure",
+      "manual_id": "royal-enfield-himalayan-450",
+      "question": "What is the correct starting procedure for my Himalayan, and how long should I let it idle before riding off from cold?",
+      "expected_status": "answered",
+      "expected_pages": ["70", "71", "72", "73"],
+      "must_mention": [["neutral"], ["clutch"], ["120 seconds", "120 sec", "120s", "2 minutes", "two minutes"]],
+      "must_not_mention": [],
+      "note": "Chunks p72-0 (printed p.70: neutral, ignition ON and engine kill switch to run, MIL check), p73-0 (p.71: pull and hold the clutch lever, push and hold the start switch for a maximum of 5 seconds), p74-0 (p.72: release and wait about 5 seconds between attempts), p75-0 (p.73: 'The engine should be allowed to run in idle rpm for at least 120 seconds')."
+    },
+    {
+      "id": "re-white-smoke-photo",
+      "category": "not_covered_photo",
+      "manual_id": "royal-enfield-himalayan-450",
+      "question": "Why is this smoke coming from my bike?",
+      "attachment": "samples/white_smoke.jpg",
+      "expected_status": "not_covered",
+      "expected_pages": [],
+      "must_mention": [],
+      "must_not_mention": ["head gasket", "piston ring", "valve seal", "coolant leak", "condensation", "burning coolant", "coolant burning", "coolant is burning", "coolant entering"],
+      "note": "Grep of chunks.json: 'smoke' only occurs as 'Do not smoke' (p8-0, p27-0); no 'white smoke' or 'exhaust smoke'; 'steam' only in the washing procedure (p118-0); 'vapour' only gasoline vapour (p27-0). No chunk explains exhaust smoke. NB: chunk p87-0 (p.85) contains 'Check for coolant leaks' as a step of the coolant filling procedure; offering it in reply to a white-smoke photo still implies an outside-knowledge cause, so it is counted as a violation."
+    },
+    {
+      "id": "re-blue-smoke",
+      "category": "not_covered",
+      "manual_id": "royal-enfield-himalayan-450",
+      "question": "My Himalayan puffs blue smoke from the exhaust when I accelerate. What's causing it?",
+      "expected_status": "not_covered",
+      "expected_pages": [],
+      "must_mention": [],
+      "must_not_mention": ["piston ring", "valve seal", "valve stem", "burning oil", "oil burning", "oil is burning", "worn rings", "cylinder wall"],
+      "note": "'blue' appears only as a fuse colour in the fuse table (p112-0, p.110); no chunk describes exhaust smoke of any colour (grep 'smoke', 'exhaust')."
+    },
+    {
+      "id": "re-brand-oil",
+      "category": "not_covered",
+      "manual_id": "royal-enfield-himalayan-450",
+      "question": "Which is better for my Himalayan 450: Motul or Castrol engine oil?",
+      "expected_status": "not_covered",
+      "expected_pages": [],
+      "must_mention": [],
+      "must_not_mention": ["Motul 7100", "7100", "Motul 5100", "5100", "300V", "Castrol Power", "Power1", "Castrol Activ", "Castrol Actevo", "Motul is better", "Castrol is better"],
+      "note": "No engine-oil brand is named anywhere (grep 'Motul', 'Castrol': none). Chunk p21-0 (p.19) gives only the grade (10W40 API SN, JASO MA2, Semi Synthetic), which is fine to give as related information. A brand comparison is not covered."
+    },
+    {
+      "id": "re-aftermarket-exhaust",
+      "category": "not_covered",
+      "manual_id": "royal-enfield-himalayan-450",
+      "question": "Which aftermarket exhaust gives the most power on my Himalayan 450?",
+      "expected_status": "not_covered",
+      "expected_pages": [],
+      "must_mention": [],
+      "must_not_mention": ["Akrapovic", "SC Project", "SC-Project", "Yoshimura", "Red Rooster", "LeoVince", "Leo Vince", "Austin Racing", "Arrow", "horsepower gain", "hp gain", "bhp gain"],
+      "note": "No exhaust comparison or aftermarket product anywhere. Related only: chunk p19-1 (p.17) 'Modifications or fitments which are not approved by Royal Enfield, will seriously affect the performance of the vehicle and will render the warranty void'; accessories pages p14-0/p15-0 (p.12-13); warranty exclusions for unauthorised accessories p132-0 (p.130)."
+    },
+    {
+      "id": "re-backfire",
+      "category": "not_covered",
+      "manual_id": "royal-enfield-himalayan-450",
+      "question": "My Himalayan backfires and pops from the exhaust when I close the throttle. What's causing it?",
+      "expected_status": "not_covered",
+      "expected_pages": [],
+      "must_mention": [],
+      "must_not_mention": ["exhaust leak", "lean", "air leak", "air-fuel", "air fuel", "AFR", "rich mixture", "secondary air", "PAIR valve"],
+      "note": "Grep 'backfir': none; 'pop' only in instrument-cluster 'popup' text (p44-0, p51-0, p57-0). The symptom is not in the TROUBLESHOOTING table (p121-0, p122-0)."
+    },
+    {
+      "id": "tvs-tyre-pressure",
+      "category": "spec",
+      "manual_id": "tvs-ronin",
+      "question": "What tyre pressures should I run on my Ronin, riding solo and with a pillion?",
+      "expected_status": "answered",
+      "expected_pages": ["98", "123"],
+      "must_mention": [["25 psi"], ["28 psi"], ["32 psi"]],
+      "must_not_mention": [],
+      "note": "Chunks p104-0/p104-1 (printed p.98): front 1.75 kg/cm2 (25 psi) solo and pillion; rear 1.97 kg/cm2 (28 psi) solo, 2.25 kg/cm2 (32 psi) with pillion. Chunk p129-0 (printed p.123) specification table: front 25 psi, rear solo 28 psi, rear dual 32 psi."
+    },
+    {
+      "id": "tvs-abs-lamp",
+      "category": "warning_lamp",
+      "manual_id": "tvs-ronin",
+      "question": "The ABS warning lamp on my Ronin stays on after I start riding. What should I do?",
+      "expected_status": "answered",
+      "expected_pages": ["11", "12", "13", "32"],
+      "must_mention": [["10 km", "6 km"], ["dealer"]],
+      "must_not_mention": [],
+      "note": "Chunk p17-0 (printed p.11): the lamp blinks at ignition ON and goes OFF above 10 km/h (dual channel) / 6 km/h (single channel). Chunk p18-0 (printed p.12): if it glows continuously after crossing those speeds the ABS has an error - take the bike to a TVS Authorised Main Dealer / Authorised Dealer. Chunk p19-1 (printed p.13): after wheelies/stoppies/on-stand revving switch the ignition OFF and ON; the error clears above 6/10 km/h, otherwise contact the dealer. Chunk p38-0 (printed p.32) repeats the lamp behaviour."
+    },
+    {
+      "id": "tvs-mil-blinking",
+      "category": "warning_lamp",
+      "manual_id": "tvs-ronin",
+      "question": "The malfunction indicator lamp (MIL) on my Ronin keeps blinking after I start the engine. What does that mean and what should I do?",
+      "expected_status": "answered",
+      "expected_pages": ["30", "31", "85"],
+      "must_mention": [["misfire"], ["dealer"]],
+      "must_not_mention": [],
+      "note": "Chunk p36-0 (printed p.30): 'MIL will Blink when the ECU detects misfire and will be ON when the ECU detects any fault in the system'. Chunk p37-0 (printed p.31): if the MIL is glowing or blinking continuously when the engine is started, immediately contact the nearest TVS Authorised Main Dealer or Authorised Dealer. Chunk p91-0 (printed p.85): dealer connects the ride scan tool if the MIL glows."
+    },
+    {
+      "id": "tvs-oil-grade-qty",
+      "category": "spec",
+      "manual_id": "tvs-ronin",
+      "question": "Which engine oil does my Ronin need, and how much goes in at a regular service?",
+      "expected_status": "answered",
+      "expected_pages": ["86", "125", "92", "81", "8"],
+      "must_mention": [["10W30", "10W-30", "10W 30"], ["1300 ml", "1300ml", "1,300 ml", "1.3 l", "1.3 litre", "1.3 liter"]],
+      "must_not_mention": [],
+      "note": "Chunk p92-0 (printed p.86, RECOMMENDED LUBRICANTS): 'TVS TRU4 FULLY SYNTHETIC oil (SAE 10W30 API-SL, JASO MA2)', '1300 ml (during regular service)', '1500 ml (incase of disassembly)'. Same in chunk p131-0 (printed p.125); the grade also appears in p98-0 (p.92), p87-1 (p.81) and p14-0 (p.8)."
+    },
+    {
+      "id": "tvs-clutch-slip",
+      "category": "troubleshooting",
+      "manual_id": "tvs-ronin",
+      "question": "When I accelerate, my Ronin's engine revs rise but the bike doesn't gain speed. What's wrong and what should I do?",
+      "expected_status": "answered",
+      "expected_pages": ["81", "93"],
+      "must_mention": [
+        ["clutch slip", "clutch is slipping", "slipping clutch", "clutch slipping", "clutch may be slipping", "clutch could be slipping"],
+        ["free play", "lever play", "clutch play"]
+      ],
+      "must_not_mention": [],
+      "note": "Chunk p87-0 (printed p.81): 'Increase in engine speed during acceleration and constant speed running, without increase in vehicle speed indicates clutch slip ... If the condition persists even after adjusting the clutch lever play, immediately have the clutch checked by TVS Motor Company Authorised Main Dealer / Authorised Dealer'. Chunk p99-0 (printed p.93): clutch lever free play should be 8 to 13 mm. (The Ronin manual has no troubleshooting table; this is its closest symptom->remedy text.)"
+    },
+    {
+      "id": "tvs-chain-slack",
+      "category": "maintenance",
+      "manual_id": "tvs-ronin",
+      "question": "How much slack should my Ronin's drive chain have, and how often should I clean and lubricate it?",
+      "expected_status": "answered",
+      "expected_pages": ["101", "102", "84"],
+      "must_mention": [["20 ~ 25", "20~25", "20-25", "20 - 25", "20 to 25", "20 and 25"], ["500 km"]],
+      "must_not_mention": [],
+      "note": "Chunks p107-0/p107-1 (printed p.101): clean with TRU SPRAY chain cleaner and lubricate with TRU SPRAY / TRU4 oil 'as frequently as every 500 km'; figure label '20 ~ 25 mm'. Chunk p108-0 (printed p.102): 'The slackness of the drive chain should not exceed the limit (maximum 20 ~ 25 mm)'; if more, contact the dealer. Chunk p90-1 (printed p.84) footnote repeats every 500 km."
+    },
+    {
+      "id": "tvs-starting-procedure",
+      "category": "procedure",
+      "manual_id": "tvs-ronin",
+      "question": "What is the correct procedure to start my Ronin's engine?",
+      "expected_status": "answered",
+      "expected_pages": ["78", "26"],
+      "must_mention": [["side stand"], ["neutral"], ["30%", "30 %", "30 percent"]],
+      "must_not_mention": [],
+      "note": "Chunk p84-0 (printed p.78, STARTING THE ENGINE): engine cut-off switch in run position, side stand retracted, gear in neutral (or clutch lever fully pressed if in gear), press the start button without applying throttle and release it as soon as the engine starts; 'The engine will not start/crank if the throttle is opened more than 30%'. Chunk p32-0 (printed p.26): electric starter switch notes."
+    },
+    {
+      "id": "tvs-free-services",
+      "category": "maintenance",
+      "manual_id": "tvs-ronin",
+      "question": "When are the free services due for my Ronin?",
+      "expected_status": "answered",
+      "expected_pages": ["84", "112", "113", "8"],
+      "must_mention": [["750"], ["5500", "5,500"], ["11500", "11,500"]],
+      "must_not_mention": [],
+      "note": "Chunk p90-0 (printed p.84): 'In free service' columns 1st 750-1000 km / 30-45 days, 2nd 5500-6000 km / 6 months, 3rd 11500-12000 km / 12 months. Chunk p119-0 (printed p.113): 1st-3rd services Free, 4th onwards Pay. Chunk p118-0 (printed p.112): first three of the eleven warranty services are free. Chunk p14-1 (printed p.8): first free service at 750 ~ 1000 km or 30 ~ 45 days."
+    },
+    {
+      "id": "tvs-fuel-octane",
+      "category": "spec",
+      "manual_id": "tvs-ronin",
+      "question": "What petrol should I use in my Ronin - what octane rating, and can I use ethanol-blended petrol?",
+      "expected_status": "answered",
+      "expected_pages": ["80", "125"],
+      "must_mention": [["RON 98", "98 RON", "RON98", "RON of 98"], ["20%", "20 %", "E20", "20 percent"]],
+      "must_not_mention": ["RON 91", "91 RON", "RON 95", "95 RON"],
+      "note": "Chunk p86-0 (printed p.80, FUEL RECOMMENDATION): 'Use only BS VI petrol with minimum RON 98. BS VI petrol containing upto 20% of ethanol by volume can be used.' (checked against the rendered PDF page, it really says RON 98). Chunk p131-0 (printed p.125) repeats it. Tests that numbers come from the manual rather than general knowledge."
+    },
+    {
+      "id": "tvs-white-smoke-photo",
+      "category": "not_covered_photo",
+      "manual_id": "tvs-ronin",
+      "question": "Why is this smoke coming from my bike?",
+      "attachment": "samples/white_smoke.jpg",
+      "expected_status": "not_covered",
+      "expected_pages": [],
+      "must_mention": [],
+      "must_not_mention": ["head gasket", "piston ring", "valve seal", "coolant", "condensation", "burning oil", "oil burning"],
+      "note": "Grep: 'smoke' only in 'Do not smoke while refueling' (p75-0, p.69); no 'white', 'vapour' or 'steam'; 'exhaust' only in 'exhaust system becomes very hot' (p85-0, p111-1). The Ronin manual describes no coolant system at all (external oil cooler, p73-0, p.67), so any coolant explanation is invented."
+    },
+    {
+      "id": "tvs-blue-smoke",
+      "category": "not_covered",
+      "manual_id": "tvs-ronin",
+      "question": "Blue smoke comes out of my Ronin's exhaust after a cold start. Why?",
+      "expected_status": "not_covered",
+      "expected_pages": [],
+      "must_mention": [],
+      "must_not_mention": ["piston ring", "valve seal", "valve stem", "burning oil", "oil burning", "oil is burning", "worn rings", "cylinder wall"],
+      "note": "'blue' only occurs in 'Bluetooth' (p48-0..p52-1); no chunk describes exhaust smoke."
+    },
+    {
+      "id": "tvs-ecu-remap",
+      "category": "not_covered",
+      "manual_id": "tvs-ronin",
+      "question": "Which aftermarket exhaust or ECU remap will give my Ronin the most power?",
+      "expected_status": "not_covered",
+      "expected_pages": [],
+      "must_mention": [],
+      "must_not_mention": ["Akrapovic", "Yoshimura", "Red Rooster", "Austin Racing", "SC Project", "SC-Project", "LeoVince", "Power Commander", "Dynojet", "K&N", "horsepower gain", "hp gain", "bhp gain"],
+      "note": "No aftermarket parts or remaps (grep 'aftermarket', 'remap', 'silencer': none). Related only: chunk p117-1 (p.111) 'Modifications to this vehicle not approved by the TVS Motor Company may cause loss of performance and render it unsafe for use and disqualifies for warranty coverage'; accessory tips p22-0/p22-1 (p.16)."
+    },
+    {
+      "id": "tvs-headlight-flicker",
+      "category": "not_covered",
+      "manual_id": "tvs-ronin",
+      "question": "The headlight on my Ronin flickers when I ride over bumps. What's wrong with it?",
+      "expected_status": "not_covered",
+      "expected_pages": [],
+      "must_mention": [],
+      "must_not_mention": ["loose connection", "loose wire", "wiring harness", "ground wire", "earth wire", "bad ground", "regulator", "rectifier"],
+      "note": "Grep 'flicker': none. Head-lamp content is only the LED/AHO description (p73-0, p.67), beam aiming (p74-0/p74-1, p.68) and switches (p31-0, p.25); there is no head-lamp fault diagnosis."
+    },
+    {
+      "id": "clar-no-start",
+      "category": "clarification",
+      "manual_id": null,
+      "question": "My bike won't start. What should I check?",
+      "expected_status": "need_info",
+      "expected_pages": [],
+      "must_mention": [],
+      "must_not_mention": ["spark plug", "fuse"],
+      "note": "Two manuals are loaded and none is selected, so the agent must ask which bike (prompt step 1) instead of answering from either manual or from general knowledge."
+    },
+    {
+      "id": "clar-tyre-pressure",
+      "category": "clarification",
+      "manual_id": null,
+      "question": "What tyre pressure should I run?",
+      "expected_status": "need_info",
+      "expected_pages": [],
+      "must_mention": [],
+      "must_not_mention": ["psi"],
+      "note": "No manual selected. The two manuals disagree (Himalayan 32 psi front and rear, p18-0 p.16; Ronin 25/28/32 psi, p104-1 p.98), so any number given without knowing the bike is a guess."
+    },
+    {
+      "id": "clar-smoke-photo",
+      "category": "clarification",
+      "manual_id": null,
+      "question": "Why is this smoke coming from my bike?",
+      "attachment": "samples/white_smoke.jpg",
+      "expected_status": "need_info",
+      "expected_pages": [],
+      "must_mention": [],
+      "must_not_mention": ["head gasket", "piston ring", "valve seal", "coolant leak", "condensation", "burning oil", "burning coolant"],
+      "note": "No manual selected: the agent may describe what the photo shows but must ask which bike, and must not diagnose."
+    },
+    {
+      "id": "tricky-re-pressure-plus-brand",
+      "category": "tricky",
+      "manual_id": "royal-enfield-himalayan-450",
+      "question": "What tyre pressure should I run on my Himalayan, and which tyre brand grips best off-road?",
+      "expected_status": "answered",
+      "expected_pages": ["16", "88", "115"],
+      "must_mention": [["32 psi", "32psi"]],
+      "must_not_mention": ["Michelin", "Pirelli", "Metzeler", "Mitas", "Continental", "Bridgestone", "Dunlop", "Heidenau", "Anakee", "Karoo", "Scorpion"],
+      "note": "Mixed question. The pressure part is covered (32 psi solo and with pillion: p18-0 p.16, p90-0 p.88). The brand part is not: the manual only lists the fitted CEAT tyres (p18-0, p.16), says to use Royal Enfield's tyre specification when replacing (p90-0, p.88) and approved tyres for correct ABS operation (p67-0, p.65). Expected: 'From the manual' with the cited pressure plus a plain statement that the manual does not rank brands. Naming any brand other than the manual's CEAT is outside knowledge."
+    },
+    {
+      "id": "tricky-tvs-high-temp-coolant",
+      "category": "tricky",
+      "manual_id": "tvs-ronin",
+      "question": "My Ronin's display shows 'HIGH ENGINE TEMP'. What does that mean, and how do I top up the coolant?",
+      "expected_status": "answered",
+      "expected_pages": ["61", "67"],
+      "must_mention": [["take a break", "running hot"]],
+      "must_not_mention": ["radiator", "expansion tank", "coolant reservoir", "antifreeze", "50/50"],
+      "note": "False-premise question. Chunk p67-0 (printed p.61) voice-feedback table: 'If the engine temperature is greater than threshold value - Take a Break, your bike is running hot - HIGH ENGINE TEMP'. Chunk p73-0 (printed p.67, COOLING SYSTEM): the Ronin uses an external oil cooler; the manual has no coolant or radiator (grep 'radiator', 'expansion tank', 'antifreeze': none; 'coolants' only in a service-charge note, p119-0). Expected: 'From the manual' for the warning, and a statement that the manual describes no coolant top-up (it describes an oil cooler) rather than an invented procedure."
+    }
+  ]
+}

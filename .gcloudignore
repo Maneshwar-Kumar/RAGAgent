@@ -1,0 +1,20 @@
+# Upload list for `gcloud run deploy --source .` (Cloud Build).
+# Deliberately does NOT include .gitignore: index/ is gitignored but must be in the image.
+.git/
+.gitignore
+.gcloudignore
+.github/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.env
+*.env
+manuals/*.pdf
+manuals/uploads/
+evals/
+docs/
+tests/
+scripts/
+deploy/
+tmp/
