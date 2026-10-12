@@ -264,7 +264,7 @@ date.
 
 | What | Command | Then |
 |---|---|---|
-| MotoMedic rider UI | `streamlit run rider_ui/app.py` | open http://localhost:8501 |
+| MotoMedic rider UI | `streamlit run rider_ui/app.py` (or `python -m rider_ui.serve` to warm up first, as on Cloud Run) | open http://localhost:8501 |
 | ADK developer UI (shows events and tool calls) | `adk web --no_use_local_storage bike_manual_agent` | open http://127.0.0.1:8000 |
 | Terminal chat | `adk run --in_memory bike_manual_agent` | type questions; the agent asks which bike first |
 | Scripted transcript | `python scripts/demo.py` | prints 8 scenarios; `--markdown FILE` saves them |
@@ -374,29 +374,45 @@ The script:
    `roles/aiplatform.user`. The app calls Vertex AI as that account; no keys are created or
    stored.
 3. Runs `gcloud run deploy --source .`, which builds the `Dockerfile` with Cloud Build. The
-   image is `python:3.12-slim`, runs as a non-root user and serves the Streamlit app on
-   `$PORT`. The deploy flags are
-   `--allow-unauthenticated --min-instances 0 --max-instances 1 --concurrency 8 --cpu 1 --memory 2Gi --timeout 3600 --cpu-boost --session-affinity`,
-   plus the Vertex AI environment variables and the cost-guard variables below. Streamlit
-   keeps a websocket open per browser tab: the long timeout stops Cloud Run cutting it, and
-   session affinity keeps a tab on the same instance.
-4. Refuses to run if `./index` contains no manuals. `.gcloudignore` deliberately uploads
-   `index/` (which `.gitignore` excludes) and leaves out the PDFs, tests, scripts and docs.
+   image is `python:3.12-slim` and runs as a non-root user. Its command,
+   `python -m rider_ui.serve`, first warms up (loads both indexes, creates the Vertex AI client
+   and the ADK runner, pre-embeds 16 common searches) and only then starts Streamlit on
+   `$PORT`, so Cloud Run counts the warm-up as startup. The deploy flags are
+   `--allow-unauthenticated --min-instances 0 --max-instances 1 --concurrency 8 --cpu 1 --memory 2Gi --timeout 3600 --cpu-boost --session-affinity --min $SERVICE_MIN_INSTANCES`
+   (default 0), the label `app=ragagent`, the Vertex AI environment variables and the
+   cost-guard variables below. Streamlit keeps a websocket open per browser tab: the long
+   timeout stops Cloud Run cutting it, and session affinity keeps a tab on the same instance.
+4. Refuses to run if `./index` contains no manuals. `.gcloudignore` uploads the committed
+   `index/` and leaves out the PDFs, tests, scripts and docs.
+
+**Warm until 18 October 2026.** For the review period the hosted demo runs with
+`SERVICE_MIN_INSTANCES=1`: one instance stays up with the indexes, client and search
+embeddings already in memory, so nobody waits for a cold start. A Cloud Scheduler job sets the
+service back to `min 0` (scale to zero on the same prebuilt index) on 18 October 2026, 00:00
+IST. Warming removes start-up and embedding latency only. Most of an answer's time (median
+about 18 s in the evaluation) is Gemini itself.
 
 Cost guards. The service is public, so spend is bounded in several places:
 
 | Guard | Default | Where |
 |---|---|---|
 | One instance at most, scale to zero | `--max-instances 1`, `--min-instances 0` | Cloud Run |
+| Model spend per day, all visitors (UTC day), metered from Gemini's reported token counts at catalog prices (input ₹144, cached ₹14, output and thinking ₹720 per million tokens) | `RAGAGENT_DAILY_MODEL_BUDGET_INR=1500` | `rider_ui/guards.py` |
 | Questions per day, all visitors (UTC day) | `RAGAGENT_DAILY_QUESTION_CAP=300` | `rider_ui/guards.py` |
 | Manual uploads per day, all visitors | `RAGAGENT_DAILY_UPLOAD_CAP=10` | `rider_ui/guards.py` |
 | Questions per minute, per visitor | `RAGAGENT_RATE_PER_MIN=8` | `rider_ui/guards.py` |
 | Turns per conversation | `RAGAGENT_MAX_TURNS=30` | `rider_ui/guards.py` |
 | Input limits: 100 words / 2,000 characters per question; photos up to 5 MB, 3 per conversation; manuals up to 40 MB / 400 pages | fixed | `rider_ui/guards.py` |
-| Billing budget alert (monthly) | on the demo's project | Cloud Billing |
+| Billing budget alerts: monthly, plus one for the warm period | on the demo's project | Cloud Billing |
 
-The counters live in the single instance's memory, which is why `max-instances` is 1. A
-budget alert only notifies; it does not stop spending. Gemini requests carry the billing
+The counters live in the single instance's memory, which is why `max-instances` is 1 (an
+instance restart resets them). A budget alert only notifies; it does not stop spending. By
+the same catalog, one always-on instance costs about ₹62 a day idle (1 vCPU, 2 GiB, request-based
+billing) and at most about ₹240 a day if it served without a break. With the ₹1,500 model cap,
+a day of the demo costs under ₹2,000 even if someone tries to run it up. A question costs
+about ₹2 to ₹4.5: ₹2.2 on average in the evaluation, and ₹4.3 for the white-smoke photo
+question on the hosted demo (four searches, about 30,000 prompt tokens of which a third were
+served from Gemini's cache). At that rate the 300-question cap is reached before the spend cap. Gemini requests carry the billing
 label `app=ragagent` (`RAGAGENT_BILLING_LABEL`), so the demo's chat cost shows up in billing
 reports.
 
@@ -414,7 +430,8 @@ reports.
 ├── rider_ui/                  MotoMedic rider UI (Streamlit), runs the agent in-process
 │   ├── app.py                 layout and chat flow
 │   ├── backend.py             ADK Runner on a background asyncio loop, manual uploads
-│   ├── guards.py              rate limits, daily caps, input limits
+│   ├── guards.py              rate limits, daily question/upload/spend caps, input limits
+│   ├── serve.py               warm start: indexes, client, common searches, then Streamlit
 │   └── theme.css
 ├── scripts/
 │   ├── fetch_manuals.py       download + SHA-256-verify the bundled manuals, --ingest

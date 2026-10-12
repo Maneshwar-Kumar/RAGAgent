@@ -15,8 +15,8 @@ import queue
 import re
 import threading
 import time
-from concurrent.futures import Future
-from dataclasses import dataclass
+from concurrent.futures import Future, ThreadPoolExecutor
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from google.adk.runners import Runner
@@ -29,6 +29,13 @@ from bike_manual_agent.ingest import ingest
 log = logging.getLogger("rider_ui")
 
 APP_NAME = "motomedic_rider_ui"
+# Searches the agent makes often; warm_up() embeds them before the first rider arrives.
+WARM_QUERIES = (
+    "troubleshooting", "engine does not start", "starting procedure", "smoke", "exhaust",
+    "white smoke", "tyre pressure", "tyre pressure pillion", "ABS warning lamp",
+    "warning lamps", "engine misfires", "engine oil", "fuse", "battery", "coolant",
+    "periodic maintenance schedule",
+)
 SESSION_IDLE_SECONDS = 2 * 60 * 60
 SOURCES_FILE = config.REPO_ROOT / "manuals" / "sources.json"
 ERROR_TEXT = (
@@ -79,6 +86,7 @@ class Answer:
     searches: tuple[str, ...]
     elapsed_s: float
     reference: str
+    usage: dict = field(default_factory=dict)  # Gemini tokens: prompt, cached, output, thinking
 
 
 def _sources() -> dict[str, dict]:
@@ -152,6 +160,28 @@ def _excerpt(result: dict, limit: int = 320) -> str:
         cut = min((i for i in (flat.find(". "), flat.find(" - ")) if 0 <= i < 160), default=-1)
         flat = "…" + flat[cut + 1 :].lstrip(" -") if cut >= 0 else "…" + flat.split(" ", 1)[-1]
     return flat if len(flat) <= limit else flat[: limit - 1].rsplit(" ", 1)[0] + "…"
+
+
+def _embed_ok(query: str) -> int:
+    try:
+        retrieval.embed_query(query)
+        return 1
+    except Exception:  # warm-up is best effort
+        log.warning("warm-up embedding failed for %r", query, exc_info=True)
+        return 0
+
+
+def warm_up(queries: tuple[str, ...] = WARM_QUERIES) -> dict:
+    """Load every bundled index and the Vertex AI client, and pre-embed common searches."""
+    started = time.monotonic()
+    manuals = builtin_manuals()  # loads (and caches) each index
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        embedded = sum(pool.map(_embed_ok, queries))
+    return {
+        "manuals": len(manuals),
+        "queries_embedded": embedded,
+        "seconds": round(time.monotonic() - started, 1),
+    }
 
 
 class Backend:
@@ -252,6 +282,7 @@ class Backend:
             return Answer("error", EXPIRED_TEXT, (), (), 0.0, "")
         retrieved = self._retrieved.setdefault(session_id, {})
         searches: list[str] = []
+        usage = {"prompt": 0, "cached": 0, "output": 0, "thinking": 0}
         final_text, reference = "", ""
         try:
             async for event in self.runner.run_async(
@@ -260,6 +291,12 @@ class Backend:
                 new_message=types.Content(role="user", parts=parts),
             ):
                 reference = reference or event.invocation_id or ""
+                meta = event.usage_metadata
+                if meta is not None:
+                    usage["prompt"] += meta.prompt_token_count or 0
+                    usage["cached"] += meta.cached_content_token_count or 0
+                    usage["output"] += meta.candidates_token_count or 0
+                    usage["thinking"] += meta.thoughts_token_count or 0
                 for call in event.get_function_calls():
                     if call.name == "search_manual":
                         query = str((call.args or {}).get("query", ""))
@@ -282,7 +319,7 @@ class Backend:
             final_text = ""
         elapsed = round(time.monotonic() - started, 1)
         if not final_text.strip():
-            return Answer("error", ERROR_TEXT, (), tuple(searches), elapsed, reference)
+            return Answer("error", ERROR_TEXT, (), tuple(searches), elapsed, reference, usage)
 
         status, body = parse_answer(final_text)
         citations, seen = [], set()
@@ -300,10 +337,10 @@ class Backend:
                 )
             )
         log.info(
-            "answer status=%s elapsed=%.1fs searches=%d citations=%d",
-            status, elapsed, len(searches), len(citations),
+            "answer status=%s elapsed=%.1fs searches=%d citations=%d tokens=%s",
+            status, elapsed, len(searches), len(citations), usage,
         )
-        return Answer(status, body, tuple(citations), tuple(searches), elapsed, reference)
+        return Answer(status, body, tuple(citations), tuple(searches), elapsed, reference, usage)
 
 
 _backend: Backend | None = None

@@ -343,13 +343,15 @@ bounded at several levels:
 
 | Control | Setting |
 |---|---|
-| Instances | `--max-instances 1`, `--min-instances 0`, `--concurrency 8`, `--cpu 1 --memory 2Gi`. `--timeout 3600` and `--session-affinity` serve Streamlit's long-lived websocket: the rider UI enforces its own 240 s limit per question |
+| Instances | `--max-instances 1`, `--min-instances 0`, `--concurrency 8`, `--cpu 1 --memory 2Gi`. `--timeout 3600` and `--session-affinity` serve Streamlit's long-lived websocket: the rider UI enforces its own 240 s limit per question. Service-level `--min` (`SERVICE_MIN_INSTANCES`) is 1 during the review period, which ends on 18 October 2026: a Cloud Scheduler job then sets it to 0, using its own service account with `roles/run.developer` on this service only |
+| Warm start | `python -m rider_ui.serve` loads the indexes, the Vertex AI client and the ADK runner and pre-embeds 16 common searches before Streamlit listens, so Cloud Run counts it as startup. Sessions share these objects because they run in the same process |
+| Model spend per day (UTC) | `RAGAGENT_DAILY_MODEL_BUDGET_INR`, default 1,500. Each answer's token counts (`usage_metadata` on ADK events: prompt, cached, candidates, thoughts) are priced at the Cloud Billing catalog rates for Gemini 3.8 Flash on the global endpoint: ₹144 input, ₹14 cached input, ₹720 output and thinking, per million tokens (`RAGAGENT_PRICE_*`). New questions are refused once the day's metered spend reaches the cap |
 | Questions per day, all visitors (UTC) | `RAGAGENT_DAILY_QUESTION_CAP`, default 300 |
 | Manual uploads per day | `RAGAGENT_DAILY_UPLOAD_CAP`, default 10 |
 | Questions per minute, per visitor | `RAGAGENT_RATE_PER_MIN`, default 8 |
 | Turns per conversation | `RAGAGENT_MAX_TURNS`, default 30 |
 | Input size | 100 words / 2,000 characters per question; photos up to 5 MB, 3 per conversation; manuals up to 40 MB / 400 pages |
-| Billing | a monthly budget alert on the project, and the label `app=ragagent` on Gemini requests |
+| Billing | a monthly budget alert on the project, one for the review period, and the label `app=ragagent` on Gemini requests and on the Cloud Run service |
 
 The counters are in-process, which is why `max-instances` is 1. They reset when the instance
 restarts. A budget alert notifies; it does not cap spend.

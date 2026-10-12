@@ -123,3 +123,31 @@ def test_guard_limits():
     now[0] = 61.0
     assert guard.admit_question("a") is None
     assert "today's question limit" in guard.admit_question("b")
+
+
+def test_model_cost_matches_catalog_prices():
+    from rider_ui.guards import cost_inr
+
+    limits = Limits()  # 144 / 14 / 720 INR per million tokens
+    usage = {"prompt": 10_000, "cached": 2_000, "output": 300, "thinking": 700}
+    expected = (8_000 * 144 + 2_000 * 14 + 1_000 * 720) / 1_000_000
+    assert cost_inr(usage, limits) == pytest.approx(expected)
+
+
+def test_daily_spend_cap_refuses_new_questions():
+    now = [0.0]
+    guard = Guard(Limits(daily_model_budget_inr=5.0), clock=lambda: now[0])
+    assert guard.admit_question("a") is None
+    guard.record_usage({"prompt": 40_000, "output": 0})  # 40k * 144 / 1e6 = INR 5.76
+    assert "usage limit" in guard.admit_question("b")
+    now[0] = 86_400.0  # next UTC day: the meter resets
+    assert guard.admit_question("b") is None and guard.spent_today_inr == 0.0
+
+
+def test_warm_up_loads_indexes_and_embeds_common_searches(monkeypatch):
+    seen = []
+    monkeypatch.setattr(backend, "builtin_manuals", lambda: [HIMALAYAN])
+    monkeypatch.setattr(backend.retrieval, "embed_query", lambda q: seen.append(q))
+    report = backend.warm_up(("troubleshooting", "smoke"))
+    assert report["manuals"] == 1 and report["queries_embedded"] == 2
+    assert sorted(seen) == ["smoke", "troubleshooting"]

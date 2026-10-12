@@ -24,4 +24,5 @@ RUN useradd --uid 10001 --create-home rider \
 USER rider
 
 EXPOSE 8080
-CMD ["sh", "-c", "exec streamlit run rider_ui/app.py --server.port=${PORT:-8080} --server.address=0.0.0.0"]
+# Warms the indexes, Vertex AI client and common search embeddings, then starts Streamlit.
+CMD ["python", "-m", "rider_ui.serve"]

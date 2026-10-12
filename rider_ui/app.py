@@ -300,6 +300,8 @@ if pending:
     else:
         pending['future'].cancel()
         result = backend.Answer('error', TIMEOUT_TEXT, (), (), 0.0, '')
+    if result.usage:
+        guard().record_usage(result.usage)
     st.session_state.messages.append(('assistant', result))
     st.session_state.pending = None
     st.rerun()

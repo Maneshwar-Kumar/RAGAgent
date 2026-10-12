@@ -81,14 +81,22 @@ def load_manual(manual_id: str, index_dir: Path | None = None) -> Manual:
     return _load_cached(str(folder), (folder / "embeddings.npy").stat().st_mtime)
 
 
-@lru_cache(maxsize=1024)
 def embed_query(text: str) -> np.ndarray:
-    """Embed a search query (cached: agents often repeat searches like "troubleshooting")."""
+    """Embed a search query. Cached by its lower-cased, whitespace-normalised text, because
+    agents often repeat searches such as "troubleshooting" in slightly different forms."""
+    return _embed_normalised(" ".join(text.lower().split()))
+
+
+@lru_cache(maxsize=2048)
+def _embed_normalised(text: str) -> np.ndarray:
     from .ingest import embed_texts
 
     vector = embed_texts([text], "RETRIEVAL_QUERY")[0]
     vector.setflags(write=False)
     return vector
+
+
+embed_query.cache_clear = _embed_normalised.cache_clear
 
 
 def citation(chunk: dict) -> str:
