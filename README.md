@@ -327,22 +327,27 @@ and selected. It stays visible only to the session that uploaded it.
 
 ## Evaluation
 
-Latest full run (32 cases, `gemini-3.8-flash`, judged by `gemini-3.1-pro-preview`, 12 Oct 2026):
+Latest full run on the current code (32 cases, `gemini-3.8-flash`, judged by
+`gemini-3.1-pro-preview`, 12 Oct 2026), next to the first run before the fixes it prompted:
 
-| Check | Result |
-|---|---|
-| Correct status (answered / not covered / needs info) | 31/32 |
-| Answer cites an expected page (answerable cases) | 20/20 |
-| Required facts present | 41/41 facts |
-| Forbidden outside-knowledge causes mentioned (e.g. "head gasket") | 0 of 15 cases |
-| Cited pages were actually retrieved | 29/29 |
-| LLM judge: no unsupported claim | 27/32 |
-| Median / p90 latency per question | 25 s / 87 s |
+| Check | Final run | Run #1 |
+|---|---|---|
+| Correct status (answered / not covered / needs info) | 32/32 | 31/32 |
+| Answer cites an expected page (answerable cases) | 20/20 | 20/20 |
+| Required facts present | 41/41 facts | 41/41 facts |
+| Forbidden outside-knowledge causes mentioned (e.g. "head gasket") | 0 of 15 cases | 0 of 15 cases |
+| Cited pages were actually retrieved | 29/29 | 29/29 |
+| LLM judge: no unsupported claim | 31/32 | 27/32 |
+| Cases passing every check | 31/32 | 26/32 |
+| Median / p90 latency per question | 21 s / 98 s | 25 s / 87 s |
 
-The judge's misses were paraphrase drift (wording stronger than the manual's), general advice
-presented as a fix for a specific symptom, and one status line written after a photo
-description. The prompt and guardrail changes made in response are listed in
-[docs/EVAL_RESULTS.md](docs/EVAL_RESULTS.md); that file is regenerated whenever the eval runs.
+Run #1's misses were paraphrase drift, general advice presented as a fix for a specific
+symptom, one false-premise answer that explained how the engine is cooled, and one status line
+written after a photo description. The remaining miss: a TVS starting answer filled a switch
+icon that the PDF's text layer drops with the word "run". Treat a one- or two-case difference
+between runs as noise (one run per case at temperature 0.1). Details, every judge flag and the
+known gaps (some "related information" items still come from cause-guessing searches) are in
+[docs/EVAL_RESULTS.md](docs/EVAL_RESULTS.md).
 
 [`evals/cases.json`](evals/cases.json) has 32 hand-written cases across both manuals:
 troubleshooting, warning lamps, specifications, maintenance, procedures, questions the manual

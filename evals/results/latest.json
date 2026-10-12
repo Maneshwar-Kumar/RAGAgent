@@ -166,6 +166,18 @@
   "refused_without_search": [],
   "status_line_not_exact": [],
   "status_line_moved": [],
+  "need_info_ids": [
+   "clar-no-start",
+   "clar-tyre-pressure",
+   "clar-smoke-photo"
+  ],
+  "retried": [
+   {
+    "id": "tvs-headlight-flicker",
+    "attempts": 3,
+    "why": "case timeout x2"
+   }
+  ],
   "searches_per_case": 1.78125,
   "agent_tokens": {
    "prompt_token_count": 317373,
@@ -298,6 +310,18 @@
    "refused_without_search": [],
    "status_line_not_exact": [],
    "status_line_moved": [],
+   "need_info_ids": [
+    "clar-no-start",
+    "clar-tyre-pressure",
+    "clar-smoke-photo"
+   ],
+   "retried": [
+    {
+     "id": "tvs-free-services",
+     "attempts": 2,
+     "why": "RemoteProtocolError x1"
+    }
+   ],
    "searches_per_case": 1.875,
    "agent_tokens": {
     "prompt_token_count": 306177,

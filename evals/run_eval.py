@@ -785,6 +785,17 @@ def compute_metrics(cases: list[dict], results: dict[str, dict]) -> dict:
     m["status_line_not_exact"] = [c["id"] for c, r in rows
                                   if r["status"] in STATUSES and not r.get("status_line_exact")]
     m["status_line_moved"] = [c["id"] for c, r in rows if r.get("reply_rewritten") == "status_line_moved"]
+    m["need_info_ids"] = [c["id"] for c, r in rows if c["expected_status"] == "need_info"]
+
+    def _why(errors):
+        kinds = []
+        for e in errors:
+            text = e.split(": ", 2)[-1]
+            kinds.append("case timeout" if "case exceeded" in text else text.split(":")[0][:60])
+        return ", ".join(f"{k} x{kinds.count(k)}" for k in dict.fromkeys(kinds))
+
+    m["retried"] = [{"id": c["id"], "attempts": r.get("attempts"), "why": _why(r.get("transient_errors", []))}
+                    for c, r in rows if r.get("transient_errors")]
     m["searches_per_case"] = (statistics.mean(len(r.get("search_queries", [])) for c, r in rows) if rows else None)
 
     def tok(key, source):
@@ -966,13 +977,18 @@ def write_report(path: Path, run: dict, cases: list[dict], results: dict[str, di
         "every applicable check holds: expected page cited and all must_mention facts present (answered cases), "
         "no must_not_mention term, every cited page actually retrieved, and the judge found no unsupported claim. "
         "p90 uses linear interpolation. Latency is wall-clock per question including tool calls and embeddings, "
-        f"measured with {run['concurrency']} questions in flight, each on its own event loop (the agent's "
-        "synchronous `search_manual` tool blocks the loop it runs on during its embedding call).",
+        f"measured with {run['concurrency']} questions in flight, each on its own event loop so that one "
+        "question's blocking work cannot stall another's. Query embeddings are cached in-process by the agent, "
+        "so a query already seen in an earlier case is faster.",
         "",
         "Other observations: "
         + "; ".join(x for x in [
             f"errors after retries: {', '.join(m['errors'])}" if m["errors"] else "no case errored after retries",
-            f"answered/refused without any manual search: {', '.join(m['no_search'])}" if m["no_search"] else "every case searched the manual at least once",
+            (f"no manual search in: {', '.join(m['no_search'])}"
+             + (" (expected: clarification questions)" if all(i in m.get("need_info_ids", []) for i in m["no_search"]) else ""))
+            if m["no_search"] else "every case searched the manual at least once",
+            ("retried after transient errors (the answer of the failed attempt, if any, was discarded): "
+             + "; ".join(f"{x['id']} ({x['attempts']} attempts: {x['why']})" for x in m["retried"])) if m.get("retried") else None,
             f"status line not in the exact required form: {', '.join(m['status_line_not_exact'])}" if m["status_line_not_exact"] else "all status lines in the exact required form",
             f"model put the status line below the first line and the agent's `status_first` moved it up: {', '.join(m['status_line_moved'])}" if m.get("status_line_moved") else "no reply needed its status line moved to the top",
             f"judge errors: {', '.join(m['judge_errors'])}" if m["judge_errors"] else None,
@@ -1075,6 +1091,12 @@ def write_report(path: Path, run: dict, cases: list[dict], results: dict[str, di
         "- The faithfulness judge is itself an LLM (from the same model family as the agent). It sees only the "
         "retrieved excerpts, not the full manual or the photo, and can make mistakes in either direction; its "
         "verdicts on failing cases were read by hand, the passing ones were not all audited.",
+        "- The judge is not perfectly consistent between runs on borderline cases (the same over-linked step was "
+        "flagged in one run and not in the next), so differences of one or two cases between runs are noise.",
+        "- All cases run in one process, and the agent caches query embeddings in-process, so a case that repeats "
+        "an earlier query (e.g. \"troubleshooting\") skips the embedding call. A cold process would be slower.",
+        "- Model-call stalls on the network path inflate p90/max latency; the harness retries a case after 420 s "
+        "(discarding the unfinished attempt) and reports only the successful attempt's latency.",
         "- Token counts come from the agent's model responses (captured by a Runner plugin before the guardrail) "
         "and from the judge responses; embedding calls made by `search_manual` are not counted.",
         "- Clarification cases only check the first turn (the agent asks which bike), not the follow-up turn.",
@@ -1084,9 +1106,11 @@ def write_report(path: Path, run: dict, cases: list[dict], results: dict[str, di
         "",
         "```bash",
         "export GOOGLE_GENAI_USE_VERTEXAI=TRUE GOOGLE_CLOUD_PROJECT=<project> GOOGLE_CLOUD_LOCATION=global",
-        "export GOOGLE_OAUTH_ACCESS_TOKEN=$(gcloud auth print-access-token)   # or use ADC",
-        "python evals/run_eval.py                 # full run with judge",
-        "python evals/run_eval.py --only <ids>    # targeted re-run (add --merge to update this report)",
+        "# a token valid for >= 55 min (print-access-token may hand out a cached one about to expire), or use ADC",
+        "export GOOGLE_OAUTH_ACCESS_TOKEN=$(gcloud config config-helper --min-expiry=55m --format=\"value(credential.access_token)\")",
+        "python evals/run_eval.py --compare evals/results/<earlier>.raw.json   # full run with judge",
+        "python evals/run_eval.py --only <ids> [--merge]   # targeted re-run (merge only for infrastructure failures)",
+        "python evals/run_eval.py --rescore       # re-check stored answers after editing cases.json, no model calls",
         "```",
         "",
     ]
