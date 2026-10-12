@@ -290,6 +290,9 @@ root_agent = LlmAgent(
     before_model_callback=index_uploaded_pdfs,
     after_model_callback=enforce_citations,
     generate_content_config=types.GenerateContentConfig(
-        temperature=0.1, labels=config.BILLING_LABELS
+        temperature=0.1,
+        labels=config.BILLING_LABELS,
+        # A stalled call times out after 60 s and is retried (see retry_options above).
+        http_options=types.HttpOptions(timeout=60_000),
     ),
 )

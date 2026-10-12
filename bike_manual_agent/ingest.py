@@ -98,7 +98,9 @@ def embed_texts(texts: list[str], task_type: str, batch_size: int = 32) -> np.nd
                 resp = client.models.embed_content(
                     model=config.EMBEDDING_MODEL,
                     contents=batch,
-                    config=types.EmbedContentConfig(task_type=task_type),
+                    config=types.EmbedContentConfig(
+                        task_type=task_type, http_options=types.HttpOptions(timeout=30_000)
+                    ),
                 )
                 break
             except Exception:  # transient quota / network errors
