@@ -1,0 +1,11 @@
+{
+  "manual_id": "royal-enfield-himalayan-450",
+  "name": "Royal Enfield Himalayan 450 (BS6) Owner's Manual",
+  "source_file": "royal-enfield-new-himalayan-450-owners-manual-bs-six-english.pdf",
+  "source_sha256": "cf221a29e2f9cd5af6e80a99774a697c814e8eda661c27d72e519d8a7e80da89",
+  "pdf_pages": 149,
+  "chunks": 179,
+  "embedding_model": "text-embedding-005",
+  "chunk_chars": 1200,
+  "chunk_overlap": 200
+}

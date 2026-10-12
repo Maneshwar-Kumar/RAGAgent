@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 560" width="1000" height="560" role="img" aria-label="RAGAgent: each manual is chunked and embedded once into a committed index; each question goes from the MotoMedic UI to the ADK agent, which searches that index, drafts a cited reply, and a citation guardrail either passes it or replaces it with a safe 'Not covered by the manual' reply." font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+  <title>RAGAgent: each manual is chunked and embedded once into a committed index; each question goes from the MotoMedic UI to the ADK agent, which searches that index, drafts a cited reply, and a citation guardrail either passes it or replaces it with a safe 'Not covered by the manual' reply.</title>
+  <defs><marker id="head-neutral" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7b877e"/></marker><marker id="head-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#175b49"/></marker><marker id="head-amber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b45309"/></marker></defs>
+  <rect x="0" y="0" width="1000" height="560" rx="16" fill="#fafaf6"/>
+  <text x="32" y="46" text-anchor="start" font-size="12" font-weight="700" fill="#68796d">ONCE PER MANUAL  ·  INGESTION  ·  RESULT COMMITTED IN index/</text>
+  <rect x="32" y="72" width="160" height="68" rx="12" fill="#ffffff" stroke="#d1dacf" stroke-width="1.5"/>
+  <text x="112.0" y="101" text-anchor="middle" font-size="15" font-weight="700" fill="#202b2a">Manual PDF</text>
+  <text x="112.0" y="121" text-anchor="middle" font-size="12.5" fill="#5f6d63">bundled or rider-uploaded</text>
+  <rect x="262" y="72" width="180" height="68" rx="12" fill="#ffffff" stroke="#d1dacf" stroke-width="1.5"/>
+  <text x="352.0" y="101" text-anchor="middle" font-size="15" font-weight="700" fill="#202b2a">Text chunks</text>
+  <text x="352.0" y="121" text-anchor="middle" font-size="12.5" fill="#5f6d63">page · section · ~1,200 chars</text>
+  <rect x="512" y="72" width="190" height="68" rx="12" fill="#ffffff" stroke="#d1dacf" stroke-width="1.5"/>
+  <text x="607.0" y="101" text-anchor="middle" font-size="15" font-weight="700" fill="#202b2a">Embed each chunk</text>
+  <text x="607.0" y="121" text-anchor="middle" font-size="12.5" fill="#5f6d63">once, text-embedding-005</text>
+  <rect x="622" y="62" width="70" height="20" rx="10" fill="#e8f0fe" stroke="#1a73e8" stroke-width="1"/>
+  <text x="657" y="76" text-anchor="middle" font-size="11" font-weight="600" fill="#1a73e8">Vertex AI</text>
+  <rect x="752" y="72" width="214" height="68" rx="12" fill="#ffffff" stroke="#d1dacf" stroke-width="1.5"/>
+  <text x="859.0" y="101" text-anchor="middle" font-size="15" font-weight="700" fill="#202b2a">Index</text>
+  <text x="859.0" y="121" text-anchor="middle" font-size="12.5" fill="#5f6d63">chunks.json · embeddings.npy</text>
+  <polyline points="192,106.0 258,106.0" fill="none" stroke="#7b877e" stroke-width="1.8" marker-end="url(#head-neutral)"/>
+  <text x="225" y="98.0" text-anchor="middle" font-size="12" font-weight="500" fill="#5f6d63">PyMuPDF</text>
+  <polyline points="442,106.0 508,106.0" fill="none" stroke="#7b877e" stroke-width="1.8" marker-end="url(#head-neutral)"/>
+  <polyline points="702,106.0 748,106.0" fill="none" stroke="#7b877e" stroke-width="1.8" marker-end="url(#head-neutral)"/>
+  <text x="725" y="98.0" text-anchor="middle" font-size="12" font-weight="500" fill="#5f6d63">vectors</text>
+  <text x="32" y="170" font-size="12" font-style="italic" fill="#5f6d63">Built once per manual (CLI or chat upload). A question embeds only its own search text.</text>
+  <line x1="32" y1="194" x2="968" y2="194" stroke="#e0e5dc" stroke-width="1.5"/>
+  <text x="32" y="230" text-anchor="start" font-size="12" font-weight="700" fill="#68796d">EVERY QUESTION  ·  ONE CLOUD RUN CONTAINER</text>
+  <rect x="32" y="262" width="120" height="68" rx="12" fill="#ffffff" stroke="#d1dacf" stroke-width="1.5"/>
+  <text x="92.0" y="291" text-anchor="middle" font-size="15" font-weight="700" fill="#202b2a">Rider</text>
+  <text x="92.0" y="311" text-anchor="middle" font-size="12.5" fill="#5f6d63">question + photo</text>
+  <rect x="232" y="262" width="160" height="68" rx="12" fill="#ffffff" stroke="#d1dacf" stroke-width="1.5"/>
+  <text x="312.0" y="291" text-anchor="middle" font-size="15" font-weight="700" fill="#202b2a">MotoMedic UI</text>
+  <text x="312.0" y="311" text-anchor="middle" font-size="12.5" fill="#5f6d63">Streamlit · caps</text>
+  <rect x="482" y="262" width="180" height="68" rx="12" fill="#ffffff" stroke="#d1dacf" stroke-width="1.5"/>
+  <text x="572.0" y="291" text-anchor="middle" font-size="15" font-weight="700" fill="#202b2a">ADK LlmAgent</text>
+  <text x="572.0" y="311" text-anchor="middle" font-size="12.5" fill="#5f6d63">Gemini · sees photo</text>
+  <rect x="582" y="252" width="70" height="20" rx="10" fill="#e8f0fe" stroke="#1a73e8" stroke-width="1"/>
+  <text x="617" y="266" text-anchor="middle" font-size="11" font-weight="600" fill="#1a73e8">Vertex AI</text>
+  <rect x="752" y="262" width="214" height="68" rx="12" fill="#ffffff" stroke="#d1dacf" stroke-width="1.5"/>
+  <text x="859.0" y="291" text-anchor="middle" font-size="15" font-weight="700" fill="#202b2a">search_manual tool</text>
+  <text x="859.0" y="311" text-anchor="middle" font-size="12.5" fill="#5f6d63">query → cosine + BM25 → RRF</text>
+  <rect x="886" y="252" width="70" height="20" rx="10" fill="#e8f0fe" stroke="#1a73e8" stroke-width="1"/>
+  <text x="921" y="266" text-anchor="middle" font-size="11" font-weight="600" fill="#1a73e8">Vertex AI</text>
+  <polyline points="859,140 859,258" fill="none" stroke="#175b49" stroke-width="1.8" marker-end="url(#head-green)"/>
+  <text x="869" y="222" text-anchor="start" font-size="12" font-weight="500" fill="#175b49">loaded into memory</text>
+  <polyline points="152,286 228,286" fill="none" stroke="#7b877e" stroke-width="1.8" marker-end="url(#head-neutral)"/>
+  <text x="190" y="279" text-anchor="middle" font-size="12" font-weight="500" fill="#5f6d63">asks</text>
+  <polyline points="232,310 156,310" fill="none" stroke="#7b877e" stroke-width="1.8" marker-end="url(#head-neutral)"/>
+  <text x="194" y="325" text-anchor="middle" font-size="12" font-weight="500" fill="#5f6d63">answer</text>
+  <polyline points="392,296 478,296" fill="none" stroke="#7b877e" stroke-width="1.8" marker-end="url(#head-neutral)"/>
+  <text x="437" y="277" text-anchor="middle" font-size="12" font-weight="500" fill="#5f6d63">question</text>
+  <text x="437" y="290" text-anchor="middle" font-size="12" font-weight="500" fill="#5f6d63">+ photo</text>
+  <polyline points="662,286 748,286" fill="none" stroke="#7b877e" stroke-width="1.8" marker-end="url(#head-neutral)"/>
+  <text x="707" y="255" text-anchor="middle" font-size="12" font-weight="500" fill="#5f6d63">symptom words</text>
+  <polyline points="752,310 666,310" fill="none" stroke="#175b49" stroke-width="1.8" marker-end="url(#head-green)"/>
+  <text x="707" y="349" text-anchor="middle" font-size="12" font-weight="500" fill="#175b49">6 excerpts, [p. N]</text>
+  <rect x="482" y="392" width="180" height="68" rx="12" fill="#ffffff" stroke="#d1dacf" stroke-width="1.5"/>
+  <text x="572.0" y="421" text-anchor="middle" font-size="15" font-weight="700" fill="#202b2a">Citation guardrail</text>
+  <text x="572.0" y="441" text-anchor="middle" font-size="12.5" fill="#5f6d63">cited pages retrieved?</text>
+  <rect x="752" y="392" width="214" height="68" rx="12" fill="#fff7ed" stroke="#b45309" stroke-width="1.5" stroke-dasharray="6 4"/>
+  <text x="859.0" y="421" text-anchor="middle" font-size="15" font-weight="700" fill="#b45309">“Not covered by the manual”</text>
+  <text x="859.0" y="441" text-anchor="middle" font-size="12.5" fill="#5f6d63">safe reply replaces the draft</text>
+  <polyline points="572,330 572,388" fill="none" stroke="#7b877e" stroke-width="1.8" marker-end="url(#head-neutral)"/>
+  <text x="582" y="364" text-anchor="start" font-size="12" font-weight="500" fill="#5f6d63">draft reply</text>
+  <polyline points="662,426 748,426" fill="none" stroke="#b45309" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#head-amber)"/>
+  <text x="707" y="418" text-anchor="middle" font-size="12" font-weight="500" fill="#b45309">fails</text>
+  <polyline points="482,426 312,426 312,334" fill="none" stroke="#175b49" stroke-width="1.8" marker-end="url(#head-green)"/>
+  <text x="397" y="418" text-anchor="middle" font-size="12" font-weight="500" fill="#175b49">passes</text>
+  <polyline points="859,460 859,500 272,500 272,334" fill="none" stroke="#b45309" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#head-amber)"/>
+  <text x="566" y="516" text-anchor="middle" font-size="12" font-weight="500" fill="#b45309">sent instead</text>
+</svg>

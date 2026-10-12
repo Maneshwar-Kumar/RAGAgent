@@ -1,0 +1,11 @@
+{
+  "manual_id": "tvs-ronin",
+  "name": "TVS Ronin Owner's Manual",
+  "source_file": "TVS-Ronin.pdf",
+  "source_sha256": "7dc1288d9b3af0b29b94ea96fb32de6be169320eaeb79b5d81e7a19e8d41acfc",
+  "pdf_pages": 134,
+  "chunks": 192,
+  "embedding_model": "text-embedding-005",
+  "chunk_chars": 1200,
+  "chunk_overlap": 200
+}

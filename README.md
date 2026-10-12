@@ -16,7 +16,27 @@ a rider a page in the official manual, or an honest "the manual doesn't say", is
 safer than a confident guess.
 
 The demo is set up for two manuals: the **Royal Enfield Himalayan 450 (BS6)** and the
-**TVS Ronin** owner's manuals. You can add any other text-based PDF manual.
+**TVS Ronin** owner's manuals. Both are in the repo with their prebuilt index, so it runs
+straight after cloning. You can add any other text-based PDF manual.
+
+## How it works
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/how-it-works-dark.svg">
+  <img src="docs/images/how-it-works.svg" width="100%" alt="Each manual is chunked and embedded once into an index that is committed to the repo. Each question goes from the MotoMedic UI to the ADK agent, which searches that index and drafts a cited reply; a citation guardrail either passes it or replaces it with a safe Not covered by the manual reply.">
+</picture>
+
+- **Top lane, once per manual.** The PDF's text is split into passages that keep their page
+  number and section, and each passage is embedded once with Vertex AI `text-embedding-005`.
+  The resulting index is committed in [`index/`](index/), so cloning, running or deploying
+  never re-embeds a manual. Only a new manual (added from the CLI or uploaded in the chat) is
+  indexed, once.
+- **Bottom lane, every question.** The ADK agent (Gemini on Vertex AI) can read manual text only
+  through the `search_manual` tool. The tool embeds just the search words, ranks passages by
+  meaning and by keywords, and returns six passages with page labels.
+- **The guardrail decides what the rider sees.** It is plain Python, not a model. It checks
+  that every page the draft cites was actually retrieved. If not, the rider gets *Not covered
+  by the manual* instead.
 
 ## Try it
 
@@ -151,44 +171,13 @@ is a prompt rule, not a hard guarantee. A per-claim verification pass is the nex
 
 ## Architecture
 
-```mermaid
-flowchart TD
-  subgraph ingestion["Ingestion: once per manual"]
-    pdfIn["Manual PDF"] --> pages["PyMuPDF: text layer, page by page"]
-    pages --> chunker["Chunks of about 1,200 chars, 200 overlap<br/>keeps PDF page, printed page, section heading"]
-    chunker --> embedder["text-embedding-005<br/>task type RETRIEVAL_DOCUMENT"]
-    embedder --> store[("index/MANUAL_ID/<br/>meta.json, chunks.json, embeddings.npy")]
-  end
+The diagram under [How it works](#how-it-works) shows the flow. In more detail:
 
-  subgraph service["Cloud Run service, max 1 instance, or your machine"]
-    uiApp["MotoMedic rider UI, Streamlit<br/>or adk web / adk run"]
-    llmAgent["ADK LlmAgent: gemini-3.8-flash<br/>tools: list_manuals, select_manual, search_manual"]
-    pdfHook["before_model_callback<br/>indexes a PDF attached to a message"]
-    hybrid["search_manual: hybrid retrieval<br/>cosine + BM25, fused with RRF k=60, top 6"]
-    guardCb["after_model_callback<br/>citation guardrail"]
-  end
-
-  vertex["Vertex AI<br/>Gemini and text-embedding-005"]
-
-  rider["Rider"] -->|question, optional photo| uiApp
-  uiApp -->|photo goes to Gemini as an image| llmAgent
-  uiApp -->|PDF from the sidebar| pdfIn
-  llmAgent --- pdfHook
-  pdfHook -->|PDF attached in chat| pdfIn
-  llmAgent -->|tool call| hybrid
-  hybrid --> store
-  hybrid -->|excerpts with page labels| llmAgent
-  llmAgent -->|final reply| guardCb
-  guardCb -->|answer, or safe Not covered reply| uiApp
-  llmAgent -.-> vertex
-  hybrid -.->|query embedding| vertex
-  embedder -.-> vertex
-```
-
-- **Ingestion** runs once per manual (`python ingest.py <pdf>`, or
-  `scripts/fetch_manuals.py --ingest` for the two bundled manuals). At question time only the
-  query is embedded. Scanned (image-only) PDFs have no text layer and are refused; OCR is not
-  supported yet.
+- **Ingestion** runs once per manual (`python ingest.py <pdf> --name ... --id ...`). The index
+  for the two bundled manuals is committed, so nothing is re-embedded after cloning or on
+  deploy; it is rebuilt only when a manual, the chunking or the embedding model changes. At
+  question time only the search text is embedded. Scanned (image-only) PDFs have no text layer
+  and are refused; OCR is not supported yet.
 - **Retrieval** fuses two rankings over the same chunks: cosine similarity of the embeddings,
   and an in-process BM25 keyword score. It uses reciprocal-rank fusion, `score = Σ 1/(60 + rank)`,
   and returns the top 6.
@@ -259,19 +248,17 @@ Gemini API key instead of Vertex AI: set `GOOGLE_GENAI_USE_VERTEXAI=FALSE` and
 model, so with a key you will probably also need `RAGAGENT_EMBEDDING_MODEL` set to an embedding
 model your key can use, and then rebuild the index.
 
-**3. Fetch and index the two bundled manuals.** The script downloads about 39 MB from the
-manufacturers' websites. It checks each file's SHA-256 against
-[`manuals/sources.json`](manuals/sources.json), then embeds about 370 chunks (roughly
-310,000 characters).
+**3. Nothing to download or index.** The two manuals and their prebuilt index are in the repo
+([`manuals/`](manuals/), [`index/`](index/)), so no embeddings are built. To check that the PDFs
+are the exact editions the index was built from (offline, no model calls):
 
 ```bash
-python scripts/fetch_manuals.py --ingest
-python scripts/fetch_manuals.py --verify-only   # re-check the PDFs later; no network, no model calls
+python scripts/fetch_manuals.py --verify-only
 ```
 
-If a manufacturer's site blocks scripted downloads, open the URL from `sources.json` in a
-browser, save the file into `manuals/` under the listed file name, then run the two commands
-above. A file whose hash does not match is reported and never indexed.
+To rebuild the index anyway (for example after changing the chunking or the embedding model),
+run `python scripts/fetch_manuals.py --ingest`. It skips any manual whose index is already up to
+date.
 
 **4. Run it.** Pick one:
 
@@ -373,8 +360,8 @@ python evals/run_eval.py --rescore    # re-score stored answers, no model calls
 ## Deployment
 
 The hosted demo runs on Cloud Run and is deployed with [`deploy/cloud_run.sh`](deploy/cloud_run.sh).
-Run it from bash (Linux, macOS, WSL or Git Bash), after `gcloud auth login` and after
-indexing the manuals locally, because `index/` is baked into the container image:
+Run it from bash (Linux, macOS, WSL or Git Bash), after `gcloud auth login`. The committed
+`index/` is copied into the container image, so the deploy embeds nothing:
 
 ```bash
 PROJECT=your-gcp-project ./deploy/cloud_run.sh      # optional: REGION, SERVICE, SA_NAME
@@ -436,9 +423,10 @@ reports.
 ├── tests/                     offline tests run by CI (agent + rider UI with a fake backend)
 ├── docs/                      ARCHITECTURE.md, EVAL_RESULTS.md, SAMPLE_TRANSCRIPTS.md
 ├── deploy/cloud_run.sh        Cloud Run deployment
-├── manuals/sources.json       official manual URLs + SHA-256 (the PDFs are git-ignored)
+├── manuals/                   the two owner's manuals (attribution in manuals/README.md),
+│                              sources.json: official URLs + SHA-256
 ├── samples/white_smoke.jpg    AI-generated test photo
-├── index/                     generated by ingestion, git-ignored
+├── index/                     prebuilt index of the bundled manuals (chunks + embeddings)
 ├── ingest.py                  CLI: python ingest.py <pdf> --name ... --id ...
 ├── Dockerfile                 container for Cloud Run (Streamlit app + agent + index)
 ├── .gcloudignore, .dockerignore   what goes into the image (index/ yes, PDFs no)
@@ -482,11 +470,12 @@ reports.
 ## Manuals & licensing
 
 - The code is released under the [MIT License](LICENSE).
-- The owner's manuals are © Royal Enfield and © TVS Motor Company. They are **not
-  redistributed**: neither the PDFs nor the index derived from them (which contains their
-  text) are committed to this repository. `scripts/fetch_manuals.py` downloads them from the
-  official URLs listed in `manuals/sources.json`. The hosted demo's private container image
-  includes the derived index so that it can answer questions.
+- The bundled owner's manuals are included unmodified, with attribution, in
+  [`manuals/`](manuals/): © Copyright 2023 Royal Enfield (A unit of Eicher Motors Ltd.), and
+  © TVS Motor Company Limited. They remain their publishers' property and are not covered by
+  the MIT license; the same applies to the index derived from them in [`index/`](index/).
+  [manuals/README.md](manuals/README.md) lists editions, official download links, SHA-256 and a
+  takedown contact.
 - Product names and trademarks belong to their owners. This project is not affiliated with,
   or endorsed by, Royal Enfield or TVS Motor Company.
 - The rider UI follows the author's earlier

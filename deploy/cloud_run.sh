@@ -3,8 +3,8 @@
 #
 #   PROJECT=your-gcp-project ./deploy/cloud_run.sh
 #
-# Prerequisites: gcloud logged in, billing enabled, and the manuals indexed locally
-# (python scripts/fetch_manuals.py --ingest) because index/ is baked into the image.
+# Prerequisites: gcloud logged in and billing enabled. The committed index/ is copied into
+# the image, so deploying embeds nothing.
 # The service runs as a dedicated service account with only roles/aiplatform.user,
 # so no API keys are involved. Cost guards: max 1 instance, scale to zero, and the
 # app-level caps below.
@@ -17,7 +17,7 @@ SA_NAME="${SA_NAME:-ragagent-run}"
 SA="${SA_NAME}@${PROJECT}.iam.gserviceaccount.com"
 
 test -d index && ls index/*/meta.json >/dev/null 2>&1 || {
-  echo "No manuals indexed in ./index - run: python scripts/fetch_manuals.py --ingest" >&2
+  echo "No manuals indexed in ./index - restore it from Git or run: python scripts/fetch_manuals.py --ingest" >&2
   exit 1
 }
 

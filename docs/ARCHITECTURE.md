@@ -75,13 +75,16 @@ Two kinds of manual share the index:
 - **Uploads** are named `upload-<first 10 hex digits of the PDF's SHA-256>`, with the PDF kept
   in `manuals/uploads/` (`RAGAGENT_UPLOAD_DIR`).
 
-Neither `index/` nor the PDFs are committed (see `.gitignore`), because both contain the
-manufacturers' text.
+The two bundled PDFs and their index are committed, with attribution in
+[`manuals/README.md`](../manuals/README.md), so a clone or a deploy never re-embeds a manual.
+Uploads (`index/upload-*`, `manuals/uploads/`) stay out of Git.
 
-`scripts/fetch_manuals.py` makes the bundled index reproducible:
+`scripts/fetch_manuals.py` keeps the bundled index verifiable and reproducible:
 
-- It downloads each PDF from the official URL in `sources.json`, writing to a temporary file
-  that is moved into place only if the SHA-256 matches.
+- `--verify-only` checks the committed PDFs against the SHA-256 in `sources.json` and
+  reports whether each index was built from that exact file (CI runs the same check as a test).
+- Without flags, it downloads any missing PDF from the official URL, writing to a temporary
+  file that is moved into place only if the SHA-256 matches.
 - It refuses any file whose hash differs.
 - With `--ingest`, it rebuilds an index only when the PDF hash, display name, embedding model
   or chunk settings in `meta.json` differ from the current configuration.

@@ -4,10 +4,12 @@
     python scripts/fetch_manuals.py --ingest        # ...then build index/<manual_id>/ for each
     python scripts/fetch_manuals.py --verify-only   # check manuals/ against sources.json (no network)
 
-The manuals are copyrighted by their manufacturers, so neither the PDFs nor the index derived
-from them are committed to this repository. manuals/sources.json records each official
-download URL and the SHA-256 of the exact edition the index and the evals were built from.
-A file that does not match is never used: the script reports it and exits with an error.
+The two bundled manuals and their prebuilt index are committed (attribution in
+manuals/README.md), so nothing needs to be downloaded or embedded after cloning. This script
+checks them, restores a missing PDF from its official URL, and rebuilds an index only when
+asked. manuals/sources.json records each official download URL and the SHA-256 of the exact
+edition the index and the evals were built from. A file that does not match is never used:
+the script reports it and exits with an error.
 
 Downloading and verifying use only the Python standard library. --ingest calls the embedding
 model, so it needs the project dependencies and the same credentials as the agent (env.sample).

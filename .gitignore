@@ -9,11 +9,12 @@ __pycache__/
 *.env
 bike_manual_agent/.env
 
-# Third-party manuals are copyrighted: fetch them with scripts/fetch_manuals.py.
-# The derived index contains manual text, so it is not committed either.
-manuals/*.pdf
+# The bundled manuals (manuals/*.pdf, see manuals/README.md) and their prebuilt index
+# (index/<manual_id>/) are committed so nobody has to re-embed them. Manuals that riders
+# upload, and their indexes, stay local.
 manuals/uploads/
-index/
+manuals/.*.partial.pdf
+index/upload-*/
 
 # ADK local session databases (adk web/run without --in_memory)
 .adk/

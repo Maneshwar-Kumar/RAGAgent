@@ -1,5 +1,5 @@
 # Upload list for `gcloud run deploy --source .` (Cloud Build).
-# Deliberately does NOT include .gitignore: index/ is gitignored but must be in the image.
+# Deliberately does NOT include .gitignore. The image needs index/ but not the PDFs.
 .git/
 .gitignore
 .gcloudignore

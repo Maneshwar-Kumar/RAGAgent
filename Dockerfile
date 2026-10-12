@@ -15,7 +15,7 @@ COPY bike_manual_agent ./bike_manual_agent
 COPY rider_ui ./rider_ui
 COPY samples ./samples
 COPY manuals/sources.json ./manuals/sources.json
-# The prebuilt index (python scripts/fetch_manuals.py --ingest) is baked into the image.
+# The committed, prebuilt index is copied in: the container never embeds the bundled manuals.
 COPY index ./index
 
 RUN useradd --uid 10001 --create-home rider \
